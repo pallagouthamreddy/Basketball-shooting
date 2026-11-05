@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ session.title }} - Analysis{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard:home' %}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'shooting:session_list' %}">Sessions</a></li>
+                <li class="breadcrumb-item active">{{ session.title }}</li>
+            </ol>
+        </nav>
+        <h2 class="fw-bold">
+            <i class="bi bi-bar-chart-fill text-primary me-2"></i>{{ session.title }}
+        </h2>
+        <p class="text-muted">
+            <i class="bi bi-calendar3 me-2"></i>{{ session.created_at|date:"F d, Y at h:i A" }}
+            <span class="mx-2">|</span>
+            <i class="bi bi-tag me-2"></i>{{ session.get_session_type_display }}
+        </p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Video Player -->
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body p-0">
+                <div class="video-container">
+                    <video controls class="w-100">
+                        <source src="{{ session.video.url }}" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+            </div>
+        </div>
+        
+        {% if session.notes %}
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-sticky-fill me-2"></i>Session Notes</h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-0">{{ session.notes }}</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Analysis Sidebar -->
+    <div class="col-lg-4">
+        {% if posture %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-person-standing me-2"></i>Posture Analysis</h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <div class="score-circle mx-auto mb-2">
+                        <div class="score-value">{{ posture.body_alignment_score|floatformat:0 }}</div>
+                    </div>
+                    <p class="text-muted mb-0">Overall Alignment Score</p>
+                </div>
+                
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="p-3 bg-light rounded text-center">
+                            <small class="text-muted d-block mb-1">Elbow</small>
+                            <div class="fs-4 fw-bold text-primary">{{ posture.elbow_angle|floatformat:1 }}°</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3 bg-light rounded text-center">
+                            <small class="text-muted d-block mb-1">Shoulder</small>
+                            <div class="fs-4 fw-bold text-primary">{{ posture.shoulder_angle|floatformat:1 }}°</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3 bg-light rounded text-center">
+                            <small class="text-muted d-block mb-1">Release</small>
+                            <div class="fs-4 fw-bold text-primary">{{ posture.release_angle|floatformat:1 }}°</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3 bg-light rounded text-center">
+                            <small class="text-muted d-block mb-1">Knee</small>
+                            <div class="fs-4 fw-bold text-primary">{{ posture.knee_angle|floatformat:1 }}°</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if trajectory %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>Trajectory Analysis</h5>
+            </div>
+            <div class="card-body text-center">
+                <div class="display-3 fw-bold mb-2" style="color: var(--secondary-color);">
+                    {{ trajectory.predicted_success_rate|floatformat:1 }}%
+                </div>
+                <p class="text-muted mb-0">Predicted Success Rate</p>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if not session.processed %}
+        <div class="card">
+            <div class="card-body text-center py-4">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <h5 class="mb-2">Processing Video</h5>
+                <p class="text-muted mb-0">{{ session.processing_status }}</p>
+                <button class="btn btn-sm btn-outline-primary mt-3" onclick="location.reload()">
+                    <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+                </button>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- AI Feedback Section -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-robot me-2"></i>AI Feedback & Corrections</h5>
+            </div>
+            <div class="card-body">
+                {% if feedbacks %}
+                    {% for feedback in feedbacks %}
+                    <div class="alert alert-{{ feedback.get_priority_class }} mb-3">
+                        <div class="d-flex align-items-start">
+                            <div class="flex-shrink-0 me-3">
+                                <i class="bi bi-{% if feedback.priority == 3 %}exclamation-triangle-fill{% elif feedback.priority == 2 %}info-circle-fill{% else %}check-circle-fill{% endif %} fs-3"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="alert-heading fw-bold mb-2">
+                                    {{ feedback.feedback_type }}
+                                    {% if feedback.priority == 3 %}
+                                        <span class="badge bg-danger ms-2">High Priority</span>
+                                    {% elif feedback.priority == 2 %}
+                                        <span class="badge bg-warning text-dark ms-2">Medium</span>
+                                    {% else %}
+                                        <span class="badge bg-success ms-2">Good</span>
+                                    {% endif %}
+                                </h6>
+                                <p class="mb-2">{{ feedback.feedback_text }}</p>
+                                <hr>
+                                <p class="mb-0">
+                                    <strong><i class="bi bi-lightbulb-fill text-warning me-2"></i>Suggestion:</strong>
+                                    {{ feedback.correction_suggestion }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-chat-dots" style="font-size: 3rem; color: var(--text-light);"></i>
+                        <p class="text-muted mt-3 mb-0">No feedback available yet. Analysis in progress...</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <a href="{% url 'shooting:session_list' %}" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-left me-2"></i>Back to Sessions
+        </a>
+    </div>
+</div>
+{% endblock %}

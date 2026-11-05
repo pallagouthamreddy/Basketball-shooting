@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Upload Video - Basketball AI{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card fade-in-up">
+            <div class="card-header">
+                <h4 class="mb-0"><i class="bi bi-camera-video-fill me-2"></i>Upload Shooting Video</h4>
+            </div>
+            <div class="card-body p-4">
+                <div class="alert alert-info mb-4">
+                    <i class="bi bi-info-circle-fill me-2"></i>
+                    <strong>Tips for best results:</strong>
+                    <ul class="mb-0 mt-2">
+                        <li>Ensure good lighting and the shooter is clearly visible</li>
+                        <li>Capture full body from side angle for accurate pose detection</li>
+                        <li>Supported formats: MP4, AVI, MOV, MKV (Max 100MB)</li>
+                    </ul>
+                </div>
+                
+                <form method="post" enctype="multipart/form-data" id="uploadForm">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.title.id_for_label }}" class="form-label">Session Title</label>
+                        {{ form.title }}
+                        {% if form.title.errors %}
+                            <div class="text-danger mt-1">{{ form.title.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.session_type.id_for_label }}" class="form-label">Session Type</label>
+                        {{ form.session_type }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.video.id_for_label }}" class="form-label">Upload Video</label>
+                        {{ form.video }}
+                        {% if form.video.errors %}
+                            <div class="text-danger mt-1">{{ form.video.errors }}</div>
+                        {% endif %}
+                        <div class="form-text">Maximum file size: 100MB</div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="{{ form.notes.id_for_label }}" class="form-label">Notes (Optional)</label>
+                        {{ form.notes }}
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                            <i class="bi bi-cloud-upload-fill me-2"></i>Upload & Analyze
+                        </button>
+                        <a href="{% url 'shooting:session_list' %}" class="btn btn-outline-secondary btn-lg">
+                            <i class="bi bi-x-circle me-2"></i>Cancel
+                        </a>
+                    </div>
+                    
+                    <div id="uploadProgress" class="mt-4 d-none">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Uploading...</span>
+                            <span id="progressPercent">0%</span>
+                        </div>
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                 id="progressBar" role="progressbar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('uploadForm').addEventListener('submit', function() {
+    document.getElementById('submitBtn').disabled = true;
+    document.getElementById('submitBtn').innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
+});
+</script>
+{% endblock %}
