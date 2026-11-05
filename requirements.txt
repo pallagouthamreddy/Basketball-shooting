@@ -1,0 +1,16 @@
+
+# Install Django and MySQL connector
+django==5.0
+mysqlclient
+
+# Install AI/ML libraries
+mediapipe==0.10.9
+opencv-python==4.9.0.80
+numpy==1.26.3
+Pillow==10.2.0
+
+# Install additional utilities
+django-crispy-forms==2.1
+crispy-bootstrap5==2024.2
+python-decouple==3.8
+
