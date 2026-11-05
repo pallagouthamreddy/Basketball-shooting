@@ -6,7 +6,7 @@ Based on the review paper *A Review of Basketball Shooting Analysis Based on Art
 
 ## Demo
 
-[Watch the full walkthrough](PASTE_YOUR_YOUTUBE_LINK_HERE)
+https://youtu.be/bUXeRHayC1I
 
 ## Features
 
