@@ -1,0 +1,232 @@
+{% extends 'base.html' %}
+
+{% block title %}Analytics Dashboard{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="fw-bold mb-1">
+            <i class="bi bi-graph-up-arrow text-primary me-2"></i>Performance Analytics
+        </h2>
+        <p class="text-muted">Last 30 days performance overview</p>
+    </div>
+</div>
+
+<!-- Analytics Stats -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card fade-in-up">
+            <div class="stat-icon">
+                <i class="bi bi-bar-chart-fill"></i>
+            </div>
+            <div class="stat-number">{{ avg_alignment|floatformat:1 }}%</div>
+            <div class="stat-label">Avg Alignment</div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="stat-card fade-in-up" style="animation-delay: 0.1s;">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #10B981, #059669);">
+                <i class="bi bi-arrow-up-circle-fill"></i>
+            </div>
+            <div class="stat-number">{{ max_score|floatformat:1 }}%</div>
+            <div class="stat-label">Best Score</div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="stat-card fade-in-up" style="animation-delay: 0.2s;">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #F59E0B, #D97706);">
+                <i class="bi bi-activity"></i>
+            </div>
+            <div class="stat-number">{{ avg_elbow|floatformat:1 }}°</div>
+            <div class="stat-label">Avg Elbow</div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="stat-card fade-in-up" style="animation-delay: 0.3s;">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #8B5CF6, #7C3AED);">
+                <i class="bi bi-speedometer2"></i>
+            </div>
+            <div class="stat-number">{{ avg_shoulder|floatformat:1 }}°</div>
+            <div class="stat-label">Avg Shoulder</div>
+        </div>
+    </div>
+</div>
+
+<!-- Performance Chart -->
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>Performance Trend</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="performanceChart" height="80"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Stats Summary -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Sessions Analyzed</span>
+                        <strong>{{ total_sessions }}</strong>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar" style="width: 100%"></div>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Average Score</span>
+                        <strong>{{ avg_alignment|floatformat:1 }}%</strong>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-success" style="width: {{ avg_alignment }}%"></div>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Peak Performance</span>
+                        <strong>{{ max_score|floatformat:1 }}%</strong>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-warning" style="width: {{ max_score }}%"></div>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <a href="{% url 'analytics:progress' %}" class="btn btn-primary w-100">
+                    <i class="bi bi-bar-chart-line-fill me-2"></i>Detailed Progress
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Sessions -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Recent Sessions</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th class="px-4 py-3">Session</th>
+                                <th>Date</th>
+                                <th>Alignment</th>
+                                <th>Elbow</th>
+                                <th>Shoulder</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for session in recent_sessions %}
+                            {% if session.posture %}
+                            <tr>
+                                <td class="px-4 py-3">
+                                    <strong>{{ session.title|truncatewords:5 }}</strong>
+                                </td>
+                                <td>{{ session.created_at|date:"M d, Y" }}</td>
+                                <td><strong class="text-success">{{ session.posture.body_alignment_score|floatformat:1 }}%</strong></td>
+                                <td>{{ session.posture.elbow_angle|floatformat:1 }}°</td>
+                                <td>{{ session.posture.shoulder_angle|floatformat:1 }}°</td>
+                                <td>
+                                    <a href="{% url 'shooting:session_detail' session.pk %}" class="btn btn-sm btn-outline-primary">
+                                        View
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+const trendData = {{ trend_data|safe }};
+const ctx = document.getElementById('performanceChart').getContext('2d');
+
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: trendData.map(d => d.date),
+        datasets: [{
+            label: 'Alignment Score',
+            data: trendData.map(d => d.score),
+            borderColor: '#6366F1',
+            backgroundColor: 'rgba(99, 102, 241, 0.1)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4,
+            pointRadius: 5,
+            pointBackgroundColor: '#6366F1',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointHoverRadius: 7
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                padding: 12,
+                titleFont: { size: 14, weight: 'bold' },
+                bodyFont: { size: 13 },
+                callbacks: {
+                    label: function(context) {
+                        return 'Score: ' + context.parsed.y.toFixed(1) + '%';
+                    }
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                max: 100,
+                ticks: {
+                    callback: function(value) {
+                        return value + '%';
+                    }
+                },
+                grid: {
+                    color: 'rgba(0, 0, 0, 0.05)'
+                }
+            },
+            x: {
+                grid: {
+                    display: false
+                }
+            }
+        }
+    }
+});
+</script>
+{% endblock %}
