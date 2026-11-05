@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Basketball AI{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="fw-bold mb-1">Welcome back, {{ user.full_name }}! 👋</h2>
+        <p class="text-muted">Track your progress and improve your shooting technique with AI</p>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card fade-in-up">
+            <div class="stat-icon">
+                <i class="bi bi-camera-video-fill"></i>
+            </div>
+            <div class="stat-number">{{ total_sessions }}</div>
+            <div class="stat-label">Total Sessions</div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="stat-card fade-in-up" style="animation-delay: 0.1s;">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #10B981, #059669);">
+                <i class="bi bi-check-circle-fill"></i>
+            </div>
+            <div class="stat-number">{{ processed_sessions }}</div>
+            <div class="stat-label">Analyzed</div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="stat-card fade-in-up" style="animation-delay: 0.2s;">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #F59E0B, #D97706);">
+                <i class="bi bi-hourglass-split"></i>
+            </div>
+            <div class="stat-number">{{ pending_sessions }}</div>
+            <div class="stat-label">Pending</div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="stat-card fade-in-up" style="animation-delay: 0.3s;">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #EF4444, #DC2626);">
+                <i class="bi bi-trophy-fill"></i>
+            </div>
+            <div class="stat-number">{{ avg_score|floatformat:0 }}%</div>
+            <div class="stat-label">Avg Score</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Recent Sessions -->
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Recent Sessions</h5>
+                <a href="{% url 'shooting:session_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                {% if recent_sessions %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="px-4 py-3">Session</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Score</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for session in recent_sessions %}
+                                <tr>
+                                    <td class="px-4 py-3">
+                                        <i class="bi bi-camera-video text-primary me-2"></i>
+                                        <strong>{{ session.title|truncatewords:5 }}</strong>
+                                    </td>
+                                    <td>{{ session.created_at|date:"M d" }}</td>
+                                    <td>
+                                        {% if session.processed %}
+                                            <span class="badge bg-success">
+                                                <i class="bi bi-check-circle me-1"></i>Done
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-warning text-dark">
+                                                <i class="bi bi-hourglass-split me-1"></i>Processing
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if session.processed and session.posture %}
+                                            <strong class="text-success">{{ session.posture.body_alignment_score|floatformat:1 }}%</strong>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'shooting:session_detail' session.pk %}" 
+                                           class="btn btn-sm btn-primary">
+                                            View
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-inbox" style="font-size: 3rem; color: var(--text-light);"></i>
+                        <p class="text-muted mt-3 mb-4">No sessions yet</p>
+                        <a href="{% url 'shooting:upload' %}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle-fill me-2"></i>Upload First Video
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions & Latest Score -->
+    <div class="col-lg-4">
+        {% if latest_posture %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>Latest Performance</h5>
+            </div>
+            <div class="card-body text-center">
+                <div class="score-circle mx-auto mb-3">
+                    <div class="score-value">{{ latest_posture.body_alignment_score|floatformat:0 }}</div>
+                </div>
+                <h6 class="mb-1">{{ latest_session.title }}</h6>
+                <p class="text-muted small mb-3">{{ latest_session.created_at|date:"M d, Y" }}</p>
+                
+                <div class="row g-2 text-start">
+                    <div class="col-6">
+                        <div class="p-2 bg-light rounded">
+                            <small class="text-muted d-block">Elbow</small>
+                            <strong>{{ latest_posture.elbow_angle|floatformat:1 }}°</strong>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-2 bg-light rounded">
+                            <small class="text-muted d-block">Shoulder</small>
+                            <strong>{{ latest_posture.shoulder_angle|floatformat:1 }}°</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-lightning-fill me-2"></i>Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'shooting:upload' %}" class="btn btn-primary">
+                        <i class="bi bi-cloud-upload-fill me-2"></i>Upload New Video
+                    </a>
+                    <a href="{% url 'analytics:dashboard' %}" class="btn btn-outline-primary">
+                        <i class="bi bi-graph-up-arrow me-2"></i>View Analytics
+                    </a>
+                    <a href="{% url 'analytics:progress' %}" class="btn btn-outline-primary">
+                        <i class="bi bi-bar-chart-line me-2"></i>Track Progress
+                    </a>
+                    <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-person-fill me-2"></i>Edit Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
