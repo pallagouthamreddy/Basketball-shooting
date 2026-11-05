@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Profile - {{ user.username }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-body text-center p-4">
+                {% if user.profile_picture %}
+                    <img src="{{ user.profile_picture.url }}" alt="Profile" class="rounded-circle mb-3" style="width: 120px; height: 120px; object-fit: cover;">
+                {% else %}
+                    <div class="stat-icon mx-auto mb-3" style="width: 120px; height: 120px; font-size: 3rem;">
+                        <i class="bi bi-person-fill"></i>
+                    </div>
+                {% endif %}
+                
+                <h3 class="fw-bold mb-1">{{ user.full_name }}</h3>
+                <p class="text-muted mb-0">@{{ user.username }}</p>
+                <span class="badge bg-primary mt-2">{{ user.get_user_type_display }}</span>
+                
+                <hr class="my-4">
+                
+                <div class="row text-center">
+                    <div class="col-6 mb-3">
+                        <div class="fw-bold fs-4">{{ user.shooting_sessions.count }}</div>
+                        <div class="text-muted small">Sessions</div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="fw-bold fs-4">
+                            {% if user.shooting_sessions.filter.processed__True.exists %}
+                                {{ user.shooting_sessions.filter.processed.first.posture.body_alignment_score|floatformat:0 }}%
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </div>
+                        <div class="text-muted small">Avg Score</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-pencil-square me-2"></i>Edit Profile</h5>
+            </div>
+            <div class="card-body p-4">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.first_name.id_for_label }}" class="form-label">First Name</label>
+                            {{ form.first_name }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.last_name.id_for_label }}" class="form-label">Last Name</label>
+                            {{ form.last_name }}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
+                            {{ form.email }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.phone.id_for_label }}" class="form-label">Phone</label>
+                            {{ form.phone }}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="{{ form.date_of_birth.id_for_label }}" class="form-label">Date of Birth</label>
+                            {{ form.date_of_birth }}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="{{ form.height.id_for_label }}" class="form-label">Height (cm)</label>
+                            {{ form.height }}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="{{ form.weight.id_for_label }}" class="form-label">Weight (kg)</label>
+                            {{ form.weight }}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="{{ form.profile_picture.id_for_label }}" class="form-label">Profile Picture</label>
+                        {{ form.profile_picture }}
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save-fill me-2"></i>Save Changes
+                        </button>
+                        <a href="{% url 'dashboard:home' %}" class="btn btn-outline-secondary">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
