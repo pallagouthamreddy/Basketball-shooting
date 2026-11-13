@@ -100,7 +100,7 @@ python manage.py runserver
 
 Open http://127.0.0.1:8000/shooting/
 
-## Sample Data (optional)
+## Sample Data
 
 Fills the database with demo players, coach, sessions and feedback:
 
